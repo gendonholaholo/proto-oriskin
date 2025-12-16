@@ -14,7 +14,7 @@ export async function analyzeSkin(imageBlob) {
   const formData = new FormData();
   formData.append('file', imageBlob, 'capture.jpg');
 
-  const response = await fetch(`${API_BASE_URL}/analyze`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
     method: 'POST',
     body: formData,
   });

@@ -1,22 +1,25 @@
-FROM python:3.10-slim
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV
-RUN apt-get update && apt-get install -y \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libgl1 \
-    && rm -rf /var/lib/apt/lists/*
+# Install uv via pip (alternative to ghcr.io)
+RUN pip install uv
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
 
-COPY . .
+# Copy dependency files first (for better caching)
+COPY pyproject.toml uv.lock* ./
+
+# Sync dependencies
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Copy application code
+COPY app ./app
 
 # Expose port
 EXPOSE 8001
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run application
+CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]

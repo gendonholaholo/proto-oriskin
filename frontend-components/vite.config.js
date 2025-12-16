@@ -5,12 +5,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8001',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
+    host: '0.0.0.0', // Allow access from Docker
+    watch: {
+      usePolling: true, // Required for Docker volume mounts
     },
   },
   resolve: {

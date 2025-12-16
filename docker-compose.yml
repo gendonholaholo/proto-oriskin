@@ -1,11 +1,34 @@
-version: '3.8'
-
 services:
+  # Backend - FastAPI
   skin-analysis:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8001:8001"
     volumes:
-      - .:/app
+      - ./app:/app/app
+      - ./.env:/app/.env
     environment:
       - PYTHONUNBUFFERED=1
+    command: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend - Vite React
+  frontend:
+    build:
+      context: ./frontend-components
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-components/src:/app/src
+    environment:
+      - VITE_API_URL=http://localhost:8001
+    depends_on:
+      - skin-analysis
